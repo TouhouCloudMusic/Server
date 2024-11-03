@@ -1,8 +1,5 @@
-use std::any::Any;
-
-use m20220101_000001_create_tables::{DatePrecision, DatePrecisionVariants};
+use m20220101_000001_create_tables::DatePrecision;
 pub use sea_orm_migration::prelude::*;
-use sea_orm_migration::{prelude::*, schema::*};
 
 mod m20220101_000001_create_tables;
 mod m20241103_183032_create_release;

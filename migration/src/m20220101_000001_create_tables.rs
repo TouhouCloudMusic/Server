@@ -25,9 +25,18 @@ impl MigrationTrait for Migration {
 
         manager
             .create_type(
-                extension::postgres::Type::create()
+                Type::create()
                     .as_enum(DatePrecision)
                     .values(DatePrecisionVariants::iter())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_type(
+                Type::create()
+                    .as_enum(EntityStatus)
+                    .values(EntityStatusVariants::iter())
                     .to_owned(),
             )
             .await?;
@@ -42,6 +51,10 @@ impl MigrationTrait for Migration {
 
         manager
             .drop_type(Type::drop().name(DatePrecision).to_owned())
+            .await?;
+
+        manager
+            .drop_type(Type::drop().name(EntityStatus).to_owned())
             .await?;
 
         Ok(())
@@ -65,4 +78,15 @@ pub enum DatePrecisionVariants {
     Day,
     Month,
     Year,
+}
+
+#[derive(DeriveIden)]
+pub struct EntityStatus;
+
+#[derive(DeriveIden, sea_orm::EnumIter)]
+pub enum EntityStatusVariants {
+    Pending,
+    Accepted,
+    Rejected,
+    Archived,
 }
