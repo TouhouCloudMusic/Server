@@ -25,7 +25,7 @@ impl MigrationTrait for Migration {
                     .table(Release::Table)
                     .if_not_exists()
                     .col(pk_auto(Release::Id))
-                    .col(default_self_id(Release::ReleaseId, Release::Id))
+                    .col(default_self_id(Release::EntityId, Release::Id))
                     .col(text(Release::Title))
                     .col(integer_null(Release::PrevId))
                     .foreign_key(
@@ -89,7 +89,7 @@ enum ReleaseTypeVariants {
 enum Release {
     Table,
     Id,
-    ReleaseId,
+    EntityId,
     Title,
     PrevId,
     NextId,
