@@ -6,8 +6,12 @@ members = [
 ]
 
 [workspace.dependencies]
-axum = "0.7"
+entity = { path = "./entity" }
+
+anyhow = "1.0.92"
+axum = { version = "0.7.7", features = [ "macros" ] }
 dotenvy = "0.15"
+itertools = "0.13.0"
 juniper = "0.16"
 juniper_axum = "0.1.1"
 sea-orm = { version = "1.1", features = [
@@ -19,6 +23,8 @@ serde = { version = "1", features = [ "derive" ] }
 tokio = { version = "1", features = [
     "full",
 ] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
 
 [package]
 edition = "2021"
@@ -26,11 +32,15 @@ name    = "thcdb_rs"
 version = "0.1.0"
 
 [dependencies]
-entity = { path = "./entity" }
+entity.workspace = true
 
-axum.workspace         = true
-dotenvy.workspace      = true
-sea-orm.workspace      = true
-tokio.workspace        = true
-juniper.workspace      = true
-juniper_axum.workspace = true
+anyhow.workspace             = true
+axum.workspace               = true
+dotenvy.workspace            = true
+itertools.workspace          = true
+juniper.workspace            = true
+juniper_axum.workspace       = true
+sea-orm.workspace            = true
+tokio.workspace              = true
+tracing-subscriber.workspace = true
+tracing.workspace            = true

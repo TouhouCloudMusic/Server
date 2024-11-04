@@ -1,11 +1,13 @@
-use sea_orm::{ActiveValue, QueryFilter};
-use sea_orm::ColumnTrait;
-use entity::user;
-use juniper::{graphql_object, graphql_value, FieldError, FieldResult};
-use sea_orm::EntityTrait;
-use crate::{JuniperContext, JuniperMutation, JuniperQuery};
+use std::sync::Arc;
+
 use crate::model::graphql_input::*;
 use crate::model::graphql_output::*;
+use crate::{JuniperContext, JuniperMutation, JuniperQuery};
+use entity::user;
+use juniper::{graphql_object, graphql_value, FieldError, FieldResult};
+use sea_orm::ColumnTrait;
+use sea_orm::EntityTrait;
+use sea_orm::{ActiveValue, QueryFilter};
 
 #[graphql_object]
 #[graphql(context = JuniperContext)]
@@ -17,13 +19,18 @@ impl JuniperQuery {
         let user = user::Entity::find()
             .filter(user::Column::Name.eq(input.username.clone()))
             .filter(user::Column::Password.eq(input.password.clone()))
-            .one(&context.db)
+            .one(context.database.as_ref())
             .await?;
 
         if user.is_some() {
-            return Ok(LoginOutput{id: user.unwrap().id});
+            return Ok(LoginOutput {
+                id: user.unwrap().id,
+            });
         }
-        Err(FieldError::new("Incorrect username or password", graphql_value!({"status": "AUTHORIZATION FAILURE"})))
+        Err(FieldError::new(
+            "Incorrect username or password",
+            graphql_value!({"status": "AUTHORIZATION FAILURE"}),
+        ))
     }
 }
 #[graphql_object]
@@ -35,11 +42,14 @@ impl JuniperMutation {
     ) -> FieldResult<SignupOutput> {
         let user = user::Entity::find()
             .filter(user::Column::Name.eq(input.username.clone()))
-            .one(&context.db)
+            .one(context.database.as_ref())
             .await?;
 
         if user.is_some() {
-            return Err(FieldError::new("Username already taken", graphql_value!({"status": "USER_EXISTS"})));
+            return Err(FieldError::new(
+                "Username already taken",
+                graphql_value!({"status": "USER_EXISTS"}),
+            ));
         }
 
         let new_user = user::ActiveModel {
@@ -48,7 +58,7 @@ impl JuniperMutation {
             ..Default::default()
         };
         let user = user::Entity::insert(new_user)
-            .exec(&context.db)
+            .exec(context.database.as_ref())
             .await?;
         Ok(SignupOutput {
             id: user.last_insert_id,
