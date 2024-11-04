@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use crate::model::graphql_input::*;
-use crate::model::graphql_output::*;
+use crate::model::input_model::*;
+use crate::model::output_model::*;
 use crate::{JuniperContext, JuniperMutation, JuniperQuery};
 use entity::user;
 use juniper::{graphql_object, graphql_value, FieldError, FieldResult};

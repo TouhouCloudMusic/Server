@@ -1,5 +1,6 @@
 mod model;
 mod resolver;
+mod service;
 
 use axum::routing::{on, MethodFilter};
 use axum::{routing::get, Extension, Router};
