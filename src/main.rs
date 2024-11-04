@@ -1,5 +1,4 @@
 use axum::{routing::get, Router};
-use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use std::env;
 
@@ -20,8 +19,6 @@ async fn get_db_connectin(
     let db_url = env::var("DATABASE_URL")?;
 
     let connection: DatabaseConnection = Database::connect(db_url).await?;
-
-    Migrator::up(&connection, None).await?;
 
     Ok(connection)
 }
