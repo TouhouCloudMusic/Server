@@ -1,13 +1,47 @@
-use axum::{routing::get, Router};
+mod resolver;
+mod model;
+
+use axum::{routing::get, Extension, Router};
 use sea_orm::{Database, DatabaseConnection};
 use std::env;
+use std::sync::Arc;
+use axum::routing::{on, MethodFilter};
+use juniper::{ EmptySubscription};
+use juniper_axum::{graphiql, graphql, playground};
+
+#[derive(Default)]
+pub struct JuniperContext {
+    db: DatabaseConnection
+}
+impl juniper::Context for JuniperContext {}
+pub struct JuniperQuery;
+pub struct JuniperMutation;
+pub struct JuniperSubscription;
+type JuniperSchema = juniper::RootNode<'static, JuniperQuery, JuniperMutation, EmptySubscription<JuniperContext>>;
 
 #[tokio::main]
 async fn main() {
-    // build our application with a single route
-    let app = Router::new().route("/", get(|| async { "Hello, World!" }));
+    let context = get_db_connectin().await
+        .map(|db| JuniperContext { db })
+        .map_err(|e| eprintln!("Failed to get database connection: {:?}", e))
+        .ok().unwrap();
 
-    // run our app with hyper, listening globally on port 3000
+    let schema = JuniperSchema::new(JuniperQuery, JuniperMutation, EmptySubscription::new());
+    let app = Router::new()
+        .route("/", get(|| async { "Hello, World!" }))
+        .route(
+            "/graphql",
+            on(
+                MethodFilter::GET.or(MethodFilter::POST),
+                graphql::<Arc<JuniperSchema>>,
+            ),
+        )
+        .route("/graphiql", get(graphiql("/graphql", "/subscriptions")))
+        .route("/playground", get(playground("/graphql", "/subscriptions")))
+        .layer(Extension(Arc::new(context)))
+        .layer(Extension(Arc::new(schema)));
+
+
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
