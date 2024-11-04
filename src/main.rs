@@ -6,8 +6,10 @@ use sea_orm::{Database, DatabaseConnection};
 use std::env;
 use std::sync::Arc;
 use axum::routing::{on, MethodFilter};
-use juniper::{ EmptySubscription};
-use juniper_axum::{graphiql, graphql, playground};
+use juniper::{EmptySubscription};
+use juniper_axum::{graphiql, playground};
+use juniper_axum::extract::JuniperRequest;
+use juniper_axum::response::JuniperResponse;
 
 #[derive(Default)]
 pub struct JuniperContext {
@@ -33,7 +35,7 @@ async fn main() {
             "/graphql",
             on(
                 MethodFilter::GET.or(MethodFilter::POST),
-                graphql::<Arc<JuniperSchema>>,
+                graphql_handler,
             ),
         )
         .route("/graphiql", get(graphiql("/graphql", "/subscriptions")))
@@ -55,4 +57,14 @@ async fn get_db_connectin(
     let connection: DatabaseConnection = Database::connect(db_url).await?;
 
     Ok(connection)
+}
+
+pub async fn graphql_handler(
+    Extension(schema): Extension<Arc<JuniperSchema>>,
+    Extension(context): Extension<Arc<JuniperContext>>,
+    JuniperRequest(req): JuniperRequest,
+) -> JuniperResponse {
+    JuniperResponse(
+        req.execute(&*schema, &*context).await,
+    )
 }
