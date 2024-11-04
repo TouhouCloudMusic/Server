@@ -2301,6 +2301,7 @@ dependencies = [
  "juniper",
  "juniper_axum",
  "sea-orm",
+ "serde",
  "tokio",
  "tracing",
  "tracing-subscriber",

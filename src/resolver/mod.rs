@@ -1,1 +1,1 @@
-pub mod user_resolver;
+pub mod user;

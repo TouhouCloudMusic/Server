@@ -2,61 +2,45 @@ mod model;
 mod resolver;
 mod service;
 
+use axum::extract::{FromRef, State};
 use axum::routing::{on, MethodFilter};
-use axum::{routing::get, Extension, Router};
-use juniper::EmptySubscription;
+use axum::{routing::get, Router};
+
 use juniper_axum::extract::JuniperRequest;
 use juniper_axum::response::JuniperResponse;
 use juniper_axum::{graphiql, playground};
 use sea_orm::{Database, DatabaseConnection};
+use service::juniper::JuniperState;
+
 use std::env;
 use std::sync::Arc;
 
-#[derive(Default)]
-pub struct JuniperContext {
-    database: Arc<DatabaseConnection>,
-}
-impl juniper::Context for JuniperContext {}
-pub struct JuniperQuery;
-pub struct JuniperMutation;
-pub struct JuniperSubscription;
-type JuniperSchema = juniper::RootNode<
-    'static,
-    JuniperQuery,
-    JuniperMutation,
-    EmptySubscription<JuniperContext>,
->;
-
-#[derive(Clone)]
+#[derive(Clone, FromRef)]
 pub struct AppState {
     database: Arc<DatabaseConnection>,
-    juniper_context: Arc<JuniperContext>,
-    juniper_schema: Arc<JuniperSchema>,
+    juniper: service::juniper::JuniperState,
+}
+
+impl AppState {
+    pub fn init(database: Arc<DatabaseConnection>) -> Self {
+        Self {
+            database: Arc::clone(&database),
+            juniper: JuniperState::init(Arc::clone(&database)),
+        }
+    }
 }
 
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().unwrap();
+
     let db_url = env::var("DATABASE_URL").unwrap();
 
     let server_port = env::var("SERVER_PORT").unwrap();
 
     let database = Arc::new(Database::connect(db_url).await.unwrap());
 
-    let context = JuniperContext {
-        database: Arc::clone(&database),
-    };
-
-    let schema = JuniperSchema::new(
-        JuniperQuery,
-        JuniperMutation,
-        EmptySubscription::new(),
-    );
-
-    let state = AppState {
-        database,
-        juniper_context: Arc::new(context),
-        juniper_schema: Arc::new(schema),
-    };
+    let state = AppState::init(database);
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
@@ -79,9 +63,8 @@ async fn main() {
 }
 
 pub async fn graphql_handler(
-    Extension(schema): Extension<Arc<JuniperSchema>>,
-    Extension(context): Extension<Arc<JuniperContext>>,
+    State(state): State<JuniperState>,
     JuniperRequest(req): JuniperRequest,
 ) -> JuniperResponse {
-    JuniperResponse(req.execute(&*schema, &*context).await)
+    JuniperResponse(req.execute(&state.schema, &state.context).await)
 }

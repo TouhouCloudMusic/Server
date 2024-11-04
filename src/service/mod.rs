@@ -1,1 +1,2 @@
-mod user_service;
+pub mod juniper;
+pub mod user;

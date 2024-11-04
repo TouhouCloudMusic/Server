@@ -1,8 +1,7 @@
-use std::sync::Arc;
-
 use crate::model::input_model::*;
 use crate::model::output_model::*;
-use crate::{JuniperContext, JuniperMutation, JuniperQuery};
+use crate::service::juniper::*;
+
 use entity::user;
 use juniper::{graphql_object, graphql_value, FieldError, FieldResult};
 use sea_orm::ColumnTrait;
@@ -22,11 +21,10 @@ impl JuniperQuery {
             .one(context.database.as_ref())
             .await?;
 
-        if user.is_some() {
-            return Ok(LoginOutput {
-                id: user.unwrap().id,
-            });
+        if let Some(u) = user {
+            return Ok(LoginOutput { id: u.id });
         }
+
         Err(FieldError::new(
             "Incorrect username or password",
             graphql_value!({"status": "AUTHORIZATION FAILURE"}),

@@ -41,6 +41,15 @@ itertools.workspace          = true
 juniper.workspace            = true
 juniper_axum.workspace       = true
 sea-orm.workspace            = true
+serde.workspace              = true
 tokio.workspace              = true
 tracing-subscriber.workspace = true
 tracing.workspace            = true
+
+[profile.release]
+codegen-units   = 1
+debug           = false
+lto             = "thin"
+opt-level       = 3
+overflow-checks = true
+panic           = "abort"
