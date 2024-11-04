@@ -25,7 +25,7 @@ table "user" {
 	column "avatar_id" {
 		type = int
 	}
-	foreign_key "avatar_id" {
+	foreign_key "fk_user_avatar_id" {
 		columns = [ column.avatar_id ]
 		ref_columns = [ table.image.column.id ]
 		on_update = CASCADE

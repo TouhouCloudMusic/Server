@@ -36,7 +36,6 @@ function Get-EnvValue {
 
 $db_url = Get-EnvValue 'DATABASE_URL'
 
-
 $expr = "atlas schema apply -u $db_url --to file://schema"
 
 Invoke-Expression -Command $expr

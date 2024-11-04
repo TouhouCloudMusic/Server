@@ -43,11 +43,14 @@ table "song_localized_title" {
 			generated = BY_DEFAULT
 		}
 	}
+	primary_key {
+		columns = [ column.id ]
+	}
 
 	column "song_id" {
 		type = int
 	}
-	foreign_key "song_id" {
+	foreign_key "fk_song_localized_title_song_id" {
 		columns = [ column.song_id ]
 		ref_columns = [ table.song.column.id ]
 		on_update = CASCADE
@@ -57,7 +60,7 @@ table "song_localized_title" {
 	column "language_id" {
 		type = int
 	}
-	foreign_key "language_id" {
+	foreign_key "fk_song_localized_title_language_id" {
 		columns = [ column.language_id ]
 		ref_columns = [ table.language.column.id ]
 		on_update = CASCADE
@@ -90,7 +93,7 @@ table "song_credit" {
 	column "song_id" {
 		type = int
 	}
-	foreign_key "song_id" {
+	foreign_key "fk_song_credit_song_id" {
 		columns = [ column.song_id ]
 		ref_columns = [ table.song.column.id ]
 		on_update = CASCADE
@@ -100,7 +103,7 @@ table "song_credit" {
 	column "role_id" {
 		type = int
 	}
-	foreign_key "role_id" {
+	foreign_key "fk_song_credit_role_id" {
 		columns = [ column.role_id ]
 		ref_columns = [ table.credit_role.column.id ]
 		on_update = CASCADE
@@ -112,17 +115,10 @@ table "song_credit" {
 table "song_history" {
 	schema = schema.public
 
-	column "id" {
-		type = int
-		identity {
-			generated = BY_DEFAULT
-		}
-	}
-
 	column "prev_id" {
 		type = int
 	}
-	foreign_key "prev_id" {
+	foreign_key "fk_song_history_prev_id" {
 		columns = [ column.prev_id ]
 		ref_columns = [ table.song.column.id ]
 		on_update = CASCADE
@@ -132,10 +128,14 @@ table "song_history" {
 	column "next_id" {
 		type = int
 	}
-	foreign_key "next_id" {
+	foreign_key "fk_song_history_next_id" {
 		columns = [ column.next_id ]
 		ref_columns = [ table.song.column.id ]
 		on_update = CASCADE
 		on_delete = CASCADE
+	}
+
+	primary_key {
+		columns = [ column.prev_id, column.next_id ]
 	}
 }

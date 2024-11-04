@@ -45,12 +45,12 @@ table "label" {
 
 	column "created_at" {
 		type = timestamptz
-		default = "now()"
+		default =  sql("now()")
 	}
 
 	column "updated_at" {
 		type = timestamptz
-		default = "now()"
+		default =  sql("now()")
 	}
 }
 
@@ -71,7 +71,7 @@ table "label_localized_name" {
 	column "label_id" {
 		type = int
 	}
-	foreign_key "label_id" {
+	foreign_key "fk_label_localized_name_label_id" {
 		columns = [ column.label_id ]
 		ref_columns = [ table.label.column.id ]
 		on_update = CASCADE
@@ -81,7 +81,7 @@ table "label_localized_name" {
 	column "language_id" {
 		type = int
 	}
-	foreign_key "language_id" {
+	foreign_key "fk_label_localized_name_language_id" {
 		columns = [ column.language_id ]
 		ref_columns = [ table.language.column.id ]
 		on_update = CASCADE
@@ -104,7 +104,7 @@ table "label_founder" {
 	column "label_id" {
 		type = int
 	}
-	foreign_key "label_id" {
+	foreign_key "fk_label_founder_label_id" {
 		columns = [ column.label_id ]
 		ref_columns = [ table.label.column.id ]
 		on_update = CASCADE
@@ -114,7 +114,7 @@ table "label_founder" {
 	column "artist_id" {
 		type = int
 	}
-	foreign_key "artist_id" {
+	foreign_key "fk_label_founder_artist_id" {
 		columns = [ column.artist_id ]
 		ref_columns = [ table.artist.column.id ]
 		on_update = CASCADE
@@ -133,7 +133,7 @@ table "label_history" {
 	column "prev_id" {
 		type = int
 	}
-	foreign_key "prev_id" {
+	foreign_key "fk_label_history_prev_id" {
 		columns = [ column.prev_id ]
 		ref_columns = [ table.label.column.id ]
 		on_update = CASCADE
@@ -143,7 +143,7 @@ table "label_history" {
 	column "next_id" {
 		type = int
 	}
-	foreign_key "next_id" {
+	foreign_key "fk_label_history_next_id" {
 		columns = [ column.next_id ]
 		ref_columns = [ table.label.column.id ]
 		on_update = CASCADE

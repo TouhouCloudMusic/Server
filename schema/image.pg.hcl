@@ -18,7 +18,7 @@ table "image" {
 	column "upload_by" {
 		type = int
 	}
-	foreign_key "upload_by" {
+	foreign_key "fk_image_upload_by" {
 		columns = [ column.upload_by ]
 		ref_columns = [ table.user.column.id ]
 		on_update = CASCADE
@@ -27,6 +27,6 @@ table "image" {
 
 	column "created_at" {
 		type = timestamptz
-		default = "now()"
+		default =  sql("now()")
 	}
 }

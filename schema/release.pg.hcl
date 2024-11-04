@@ -64,12 +64,12 @@ table "release" {
 
 	column "created_at" {
 		type = timestamptz
-		default = "now()"
+		default =  sql("now()")
 	}
 
 	column "updated_at" {
 		type = timestamptz
-		default = "now()"
+		default =  sql("now()")
 	}
 
 }
@@ -90,7 +90,7 @@ table "release_localized_title" {
 	column "release_id" {
 		type = int
 	}
-	foreign_key "release_id" {
+	foreign_key "fk_release_id_release_id" {
 		columns = [ column.release_id ]
 		ref_columns = [ table.release.column.id ]
 		on_update = CASCADE
@@ -100,7 +100,7 @@ table "release_localized_title" {
 	column "language_id" {
 		type = int
 	}
-	foreign_key "language_id" {
+	foreign_key "fk_release_id_language_id" {
 		columns = [ column.language_id ]
 		ref_columns = [ table.language.column.id ]
 		on_update = CASCADE
@@ -123,7 +123,7 @@ table "release_artist" {
 	column "release_id" {
 		type = int
 	}
-	foreign_key "release_id" {
+	foreign_key "fk_release_artist_release_id" {
 		columns = [ column.release_id ]
 		ref_columns = [ table.release.column.id ]
 		on_update = CASCADE
@@ -133,7 +133,7 @@ table "release_artist" {
 	column "artist_id" {
 		type = int
 	}
-	foreign_key "artist_id" {
+	foreign_key "fk_release_artist_artist_id" {
 		columns = [ column.artist_id ]
 		ref_columns = [ table.artist.column.id ]
 		on_update = CASCADE
@@ -152,7 +152,7 @@ table "release_label" {
 	column "release_id" {
 		type = int
 	}
-	foreign_key "release_id" {
+	foreign_key "fk_release_label_release_id" {
 		columns = [ column.release_id ]
 		ref_columns = [ table.release.column.id ]
 		on_update = CASCADE
@@ -162,7 +162,7 @@ table "release_label" {
 	column "label_id" {
 		type = int
 	}
-	foreign_key "label_id" {
+	foreign_key "fk_release_label_label_id" {
 		columns = [ column.label_id ]
 		ref_columns = [ table.label.column.id ]
 		on_update = CASCADE
@@ -182,7 +182,7 @@ table "release_history" {
 	column "prev_id" {
 		type = int
 	}
-	foreign_key "prev_id" {
+	foreign_key "fk_release_history_prev_id" {
 		columns = [ column.prev_id ]
 		ref_columns = [ table.release.column.id ]
 		on_update = CASCADE
@@ -192,11 +192,15 @@ table "release_history" {
 	column "next_id" {
 		type = int
 	}
-	foreign_key "next_id" {
+	foreign_key "fk_release_history_next_id" {
 		columns = [ column.next_id ]
 		ref_columns = [ table.release.column.id ]
 		on_update = CASCADE
 		on_delete = CASCADE
+	}
+
+	primary_key {
+		columns = [ column.prev_id, column.next_id ]
 	}
 
 }
@@ -217,7 +221,7 @@ table "release_track" {
 	column "release_id" {
 		type = int
 	}
-	foreign_key "release_id" {
+	foreign_key "fk_release_track_release_id" {
 		columns = [ column.release_id ]
 		ref_columns = [ table.release.column.id ]
 		on_update = CASCADE
@@ -250,7 +254,7 @@ table "release_track_artist" {
 	column "track_id" {
 		type = int
 	}
-	foreign_key "track_id" {
+	foreign_key "fk_release_track_artist_track_id" {
 		columns = [ column.track_id ]
 		ref_columns = [ table.release_track.column.id ]
 		on_update = CASCADE
@@ -287,7 +291,7 @@ table "release_credit" {
 	column "release_id" {
 		type = int
 	}
-	foreign_key "release_id" {
+	foreign_key "fk_release_credit_release_id" {
 		columns = [ column.release_id ]
 		ref_columns = [ table.release.column.id ]
 		on_update = CASCADE
@@ -297,7 +301,7 @@ table "release_credit" {
 	column "role_id" {
 		type = int
 	}
-	foreign_key "role_id" {
+	foreign_key "fk_release_credit_role_id" {
 		columns = [ column.role_id ]
 		ref_columns = [ table.credit_role.column.id ]
 		on_update = CASCADE

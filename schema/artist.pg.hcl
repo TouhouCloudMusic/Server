@@ -74,7 +74,7 @@ table "artist_history" {
 	column "prev_id" {
 		type = int
 	}
-	foreign_key "prev_id" {
+	foreign_key "fk_artist_history_prev_id" {
 		columns = [ column.prev_id ]
 		ref_columns = [ table.artist.column.id ]
 		on_update = CASCADE
@@ -84,7 +84,7 @@ table "artist_history" {
 	column "next_id" {
 		type = int
 	}
-	foreign_key "next_id" {
+	foreign_key "fk_artist_history_next_id" {
 		columns = [ column.next_id ]
 		ref_columns = [ table.artist.column.id ]
 		on_update = CASCADE
@@ -112,7 +112,7 @@ table "artist_localized_name" {
 	column "artist_id" {
 		type = int
 	}
-	foreign_key "artist_id" {
+	foreign_key "fk_artist_localized_name_artist_id" {
 		columns = [ column.artist_id ]
 		ref_columns = [ table.artist.column.id ]
 		on_update = CASCADE
@@ -122,7 +122,7 @@ table "artist_localized_name" {
 	column "language_id" {
 		type = int
 	}
-	foreign_key "language_id" {
+	foreign_key "fk_artist_localized_name_language_id" {
 		columns = [ column.language_id ]
 		ref_columns = [ table.language.column.id ]
 		on_update = CASCADE
@@ -167,7 +167,7 @@ table "alias_group_history" {
 	column "prev_id" {
 		type = int
 	}
-	foreign_key "prev_id" {
+	foreign_key "fk_alias_group_prev_id" {
 		columns = [ column.prev_id ]
 		ref_columns = [ table.alias_group.column.id ]
 		on_update = CASCADE
@@ -177,7 +177,7 @@ table "alias_group_history" {
 	column "next_id" {
 		type = int
 	}
-	foreign_key "next_id" {
+	foreign_key "fk_alias_group_next_id" {
 		columns = [ column.next_id ]
 		ref_columns = [ table.alias_group.column.id ]
 		on_update = CASCADE
@@ -196,7 +196,7 @@ table "group_member" {
 	column "member_id" {
 		type = int
 	}
-	foreign_key "member_id" {
+	foreign_key "fk_group_member_member_id" {
 		columns = [ column.member_id ]
 		ref_columns = [ table.artist.column.id ]
 		on_update = CASCADE
@@ -206,7 +206,7 @@ table "group_member" {
 	column "group_id" {
 		type = int
 	}
-	foreign_key "group_id" {
+	foreign_key "fk_group_member_group_id" {
 		columns = [ column.group_id ]
 		ref_columns = [ table.artist.column.id ]
 		on_update = CASCADE

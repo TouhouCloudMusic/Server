@@ -38,7 +38,7 @@ table "credit_role_inheritance" {
 	column "child_id" {
 		type = int
 	}
-	foreign_key "child_id" {
+	foreign_key "fk_credit_role_inheritance_child_id" {
 		columns = [ column.child_id ]
 		ref_columns = [ table.credit_role.column.id ]
 		on_update = CASCADE
@@ -47,10 +47,14 @@ table "credit_role_inheritance" {
 	column "parent_id" {
 		type = int
 	}
-	foreign_key "parent_id" {
+	foreign_key "fk_credit_role_inheritance_parent_id" {
 		columns = [ column.parent_id ]
 		ref_columns = [ table.credit_role.column.id ]
 		on_update = CASCADE
+	}
+
+	primary_key {
+		columns = [ column.child_id, column.parent_id ]
 	}
 }
 
@@ -60,7 +64,7 @@ table "credit_role_history" {
 	column "prev_id" {
 		type = int
 	}
-	foreign_key "prev_id" {
+	foreign_key "fk_credit_role_history_prev_id" {
 		columns = [ column.prev_id ]
 		ref_columns = [ table.credit_role.column.id ]
 		on_update = CASCADE
@@ -69,7 +73,7 @@ table "credit_role_history" {
 	column "next_id" {
 		type = int
 	}
-	foreign_key "next_id" {
+	foreign_key "fk_credit_role_history_next_id" {
 		columns = [ column.next_id ]
 		ref_columns = [ table.credit_role.column.id ]
 		on_update = CASCADE
