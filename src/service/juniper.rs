@@ -1,5 +1,6 @@
 use axum::extract::FromRef;
 use juniper::EmptySubscription;
+use once_cell::sync::Lazy;
 use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 
@@ -32,18 +33,18 @@ pub type JuniperSchema = juniper::RootNode<
 #[derive(Clone, FromRef)]
 pub struct JuniperState {
     pub context: Arc<JuniperContext>,
-    pub schema: Arc<JuniperSchema>,
+    pub schema: &'static JuniperSchema,
 }
+
+static JUNIPER_SCHEMA: Lazy<JuniperSchema> = Lazy::new(|| {
+    JuniperSchema::new(JuniperQuery, JuniperMutation, EmptySubscription::new())
+});
 
 impl JuniperState {
     pub fn init(database: Arc<DatabaseConnection>) -> Self {
         Self {
             context: JuniperContext::init(database),
-            schema: Arc::new(JuniperSchema::new(
-                JuniperQuery,
-                JuniperMutation,
-                EmptySubscription::new(),
-            )),
+            schema: &JUNIPER_SCHEMA,
         }
     }
 }

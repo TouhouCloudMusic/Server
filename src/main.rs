@@ -34,6 +34,8 @@ impl AppState {
 async fn main() {
     dotenvy::dotenv().unwrap();
 
+    tracing_subscriber::fmt::init();
+
     let db_url = env::var("DATABASE_URL").unwrap();
 
     let server_port = env::var("SERVER_PORT").unwrap();
