@@ -1,19 +1,24 @@
-use axum::extract::FromRef;
 use juniper::EmptySubscription;
-use once_cell::sync::Lazy;
 use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 
+use crate::AppState;
+
 #[derive(Default)]
 pub struct JuniperContext {
+    #[allow(dead_code)]
     pub database: Arc<DatabaseConnection>,
+    pub user_service: crate::service::user::UserService,
 }
 
 impl juniper::Context for JuniperContext {}
 
-impl JuniperContext {
-    fn init(database: Arc<DatabaseConnection>) -> Arc<Self> {
-        Arc::new(Self { database })
+impl From<AppState> for JuniperContext {
+    fn from(state: AppState) -> Self {
+        Self {
+            database: Arc::clone(&state.database),
+            user_service: state.user_service,
+        }
     }
 }
 
@@ -29,22 +34,3 @@ pub type JuniperSchema = juniper::RootNode<
     JuniperMutation,
     EmptySubscription<JuniperContext>,
 >;
-
-#[derive(Clone, FromRef)]
-pub struct JuniperState {
-    pub context: Arc<JuniperContext>,
-    pub schema: &'static JuniperSchema,
-}
-
-static JUNIPER_SCHEMA: Lazy<JuniperSchema> = Lazy::new(|| {
-    JuniperSchema::new(JuniperQuery, JuniperMutation, EmptySubscription::new())
-});
-
-impl JuniperState {
-    pub fn init(database: Arc<DatabaseConnection>) -> Self {
-        Self {
-            context: JuniperContext::init(database),
-            schema: &JUNIPER_SCHEMA,
-        }
-    }
-}

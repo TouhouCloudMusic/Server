@@ -1,77 +1,139 @@
-use sea_orm::{ActiveValue, ColumnTrait, DbErr};
-use sea_orm::QueryFilter;
-use sea_orm::EntityTrait;
+use std::sync::Arc;
+
+use anyhow::{Error, Result};
+use argon2::{
+    password_hash::{
+        rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier,
+        SaltString,
+    },
+    Argon2,
+};
 use entity::user;
-use crate::service::juniper::JuniperContext;
+use once_cell::sync::Lazy;
+use sea_orm::QueryFilter;
+use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, DbErr};
+use sea_orm::{EntityTrait, QuerySelect};
 
-pub struct UserService;
+#[derive(Default, Clone)]
+pub struct UserService {
+    database: Arc<DatabaseConnection>,
+}
+
+pub enum Password {
+    #[allow(dead_code)]
+    Hashed(String),
+    Unhashed(String),
+}
+
+pub static ARGON2_HASHER: Lazy<Argon2> = Lazy::new(Argon2::default);
+
+impl Password {
+    fn to_string(&self) -> Result<String> {
+        match self {
+            Password::Hashed(password) => Ok(password.to_string()),
+            Password::Unhashed(password) => {
+                let salt = SaltString::generate(&mut OsRng);
+
+                let password_hash = ARGON2_HASHER
+                    .hash_password(password.as_bytes(), &salt)
+                    .map_err(|err| {
+                        Error::msg(format!("Failed to hash password: {}", err))
+                    })?;
+
+                Ok(password_hash.to_string())
+            }
+        }
+    }
+}
+
+impl From<&str> for Password {
+    fn from(value: &str) -> Password {
+        Password::Unhashed(value.to_string())
+    }
+}
+
+impl From<String> for Password {
+    fn from(value: String) -> Password {
+        Password::Unhashed(value)
+    }
+}
+
+impl From<&String> for Password {
+    fn from(value: &String) -> Password {
+        Password::Unhashed(value.to_string())
+    }
+}
+
 impl UserService {
-    pub async fn is_user_exit(
-        username: String,
-        context: &JuniperContext,
-    )
-    -> bool {
-        let user = user::Entity::find()
-            .filter(user::Column::Name.eq(username))
-            .one(context.database.as_ref())
-            .await;
-
-        match user {
-            Ok(user) => {user.is_some()}
-            Err(_) => {false}
+    pub fn new(database: &Arc<DatabaseConnection>) -> Self {
+        Self {
+            database: Arc::clone(database),
         }
     }
 
-    pub async fn create_user(
-        username: String,
-        password: String,
-        context: &JuniperContext,
-    ) -> Result<user::Model, DbErr> {
+    pub async fn is_exist(&self, username: &String) -> Result<bool, DbErr> {
+        user::Entity::find()
+            .filter(user::Column::Name.eq(username))
+            .one(self.database.as_ref())
+            .await
+            .map(|opt| opt.is_some())
+    }
+
+    pub async fn create(
+        &self,
+        username: &String,
+        password: Password,
+    ) -> Result<user::Model> {
         let new_user = user::ActiveModel {
-            name: ActiveValue::Set(username),
-            password: ActiveValue::Set(password),
+            name: ActiveValue::Set(username.to_string()),
+            password: ActiveValue::Set(password.to_string()?),
             ..Default::default()
         };
 
-        let user_id = user::Entity::insert(new_user)
-            .exec(context.database.as_ref())
-            .await?.last_insert_id;
+        let user = user::Entity::insert(new_user)
+            .exec_with_returning(self.database.as_ref())
+            .await?;
 
-        let user = user::Entity::find_by_id(user_id)
-            .one(context.database.as_ref())
+        Ok(user)
+    }
+
+    pub async fn verify_password(
+        &self,
+        username: &String,
+        password: &String,
+    ) -> Result<bool> {
+        if let Some(user) = user::Entity::find()
+            .select_only()
+            .column(user::Column::Password)
+            .filter(user::Column::Name.eq(username))
+            .one(self.database.as_ref())
             .await?
-            .ok_or(DbErr::RecordNotFound("User not found after insert".to_string()))?;
+        {
+            let parsed_hash =
+                PasswordHash::new(&user.password).map_err(|op| {
+                    Error::msg(format!("Failed to parse password: {}", op))
+                })?;
 
-        Ok(user)
-    }
+            let verifycation_result = ARGON2_HASHER
+                .verify_password(password.as_bytes(), &parsed_hash)
+                .is_ok();
 
-    pub async fn is_password_correct(
-        username: String,
-        password: String,
-        context: &JuniperContext,
-    )
-        -> bool {
-        let user = user::Entity::find()
-            .filter(user::Column::Name.eq(username))
-            .filter(user::Column::Password.eq(password))
-            .one(context.database.as_ref())
-            .await;
-
-        match user {
-            Ok(user) => {user.is_some()}
-            Err(_) => {false}
+            return Ok(verifycation_result);
         }
+
+        Err(Error::msg("User not found"))
     }
 
-    pub async fn get_user(
-        username: String,
-        context: &JuniperContext,
+    pub async fn find_by_name(
+        &self,
+        username: &String,
     ) -> Result<user::Model, DbErr> {
-        let user = user::Entity::find()
+        user::Entity::find()
             .filter(user::Column::Name.eq(username))
-            .one(context.database.as_ref())
-            .await?.ok_or(DbErr::RecordNotFound("User not found after login".to_string()))?;
-
-        Ok(user)
+            .one(self.database.as_ref())
+            .await?
+            .ok_or(DbErr::RecordNotFound(
+                "User not found after login".to_string(),
+            ))
     }
 }

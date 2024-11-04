@@ -6,11 +6,18 @@ use axum::extract::{FromRef, State};
 use axum::routing::{on, MethodFilter};
 use axum::{routing::get, Router};
 
+use juniper::EmptySubscription;
 use juniper_axum::extract::JuniperRequest;
 use juniper_axum::response::JuniperResponse;
 use juniper_axum::{graphiql, playground};
-use sea_orm::{Database, DatabaseConnection};
-use service::juniper::JuniperState;
+
+use sea_orm::DatabaseConnection;
+
+use service::database::get_db_connection;
+use service::juniper::{
+    JuniperContext, JuniperMutation, JuniperQuery, JuniperSchema,
+};
+use service::user::UserService;
 
 use std::env;
 use std::sync::Arc;
@@ -18,14 +25,16 @@ use std::sync::Arc;
 #[derive(Clone, FromRef)]
 pub struct AppState {
     database: Arc<DatabaseConnection>,
-    juniper: service::juniper::JuniperState,
+    user_service: UserService,
 }
 
 impl AppState {
-    pub fn init(database: Arc<DatabaseConnection>) -> Self {
+    pub async fn init() -> Self {
+        let database = get_db_connection().await;
+
         Self {
             database: Arc::clone(&database),
-            juniper: JuniperState::init(Arc::clone(&database)),
+            user_service: UserService::new(&database),
         }
     }
 }
@@ -36,13 +45,9 @@ async fn main() {
 
     tracing_subscriber::fmt::init();
 
-    let db_url = env::var("DATABASE_URL").unwrap();
-
     let server_port = env::var("SERVER_PORT").unwrap();
 
-    let database = Arc::new(Database::connect(db_url).await.unwrap());
-
-    let state = AppState::init(database);
+    let state = AppState::init().await;
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
@@ -65,8 +70,13 @@ async fn main() {
 }
 
 pub async fn graphql_handler(
-    State(state): State<JuniperState>,
+    State(state): State<AppState>,
     JuniperRequest(req): JuniperRequest,
 ) -> JuniperResponse {
-    JuniperResponse(req.execute(&state.schema, &state.context).await)
+    let schema = JuniperSchema::new(
+        JuniperQuery,
+        JuniperMutation,
+        EmptySubscription::new(),
+    );
+    JuniperResponse(req.execute(&schema, &JuniperContext::from(state)).await)
 }
