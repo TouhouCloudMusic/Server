@@ -20,7 +20,7 @@ pub struct JuniperQuery;
 
 pub struct JuniperMutation;
 
-pub struct JuniperSubscription;
+pub struct _JuniperSubscription;
 
 pub type JuniperSchema = juniper::RootNode<
     'static,

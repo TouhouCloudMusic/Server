@@ -32,8 +32,7 @@ name    = "thcdb_rs"
 version = "0.1.0"
 
 [dependencies]
-entity.workspace = true
-
+entity.workspace             = true
 anyhow.workspace             = true
 axum.workspace               = true
 dotenvy.workspace            = true
