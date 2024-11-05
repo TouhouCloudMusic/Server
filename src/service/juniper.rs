@@ -11,6 +11,7 @@ pub struct JuniperContext {
     pub database: Arc<DatabaseConnection>,
     pub user_service: crate::service::user::UserService,
     pub song_service: crate::service::song::SongService,
+    pub release_service: crate::service::release::ReleaseService,
 }
 
 impl juniper::Context for JuniperContext {}
@@ -20,7 +21,8 @@ impl From<AppState> for JuniperContext {
         Self {
             database: Arc::clone(&state.database),
             user_service: state.user_service,
-            song_service: state.song_service
+            song_service: state.song_service,
+            release_service: state.release_service
         }
     }
 }

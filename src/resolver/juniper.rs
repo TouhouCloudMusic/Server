@@ -1,3 +1,4 @@
+use crate::resolver::release::ReleaseQuery;
 use crate::resolver::song::{SongMutation, SongQuery};
 use crate::resolver::user::{UserMutation, UserQuery};
 use crate::service::juniper::JuniperContext;
@@ -9,6 +10,7 @@ pub struct JuniperMutation;
 impl JuniperQuery {
     fn user(&self) -> UserQuery { UserQuery }
     fn song(&self) -> SongQuery { SongQuery }
+    fn release(&self) -> ReleaseQuery { ReleaseQuery }
 }
 
 #[juniper::graphql_object]

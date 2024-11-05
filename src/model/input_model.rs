@@ -30,3 +30,16 @@ pub struct CreateSongInput {
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
 }
+
+#[derive(GraphQLInputObject)]
+pub struct RetrieveReleaseInput {
+    pub id: i32,
+}
+
+#[derive(GraphQLInputObject)]
+pub struct CreateReleaseInput {
+    pub status: EntityStatus,
+    pub title: String,
+    pub created_at: DateTimeWithTimeZone,
+    pub updated_at: DateTimeWithTimeZone,
+}

@@ -30,6 +30,7 @@ pub enum ArtistType {
     DeriveActiveEnum,
     Serialize,
     Deserialize,
+    GraphQLEnum
 )]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "DatePrecision")]
 pub enum DatePrecision {
@@ -71,6 +72,7 @@ pub enum EntityStatus {
     DeriveActiveEnum,
     Serialize,
     Deserialize,
+    GraphQLEnum
 )]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "ReleaseType")]
 pub enum ReleaseType {
