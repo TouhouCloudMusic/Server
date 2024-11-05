@@ -1,14 +1,16 @@
 use juniper::{FieldResult};
 use entity::song;
-use crate::model::input_model::{RandomSongInput, SongInput};
+use crate::model::input_model::{CreateSongInput, RandomSongInput, RetrieveSongInput};
 use crate::service::juniper::{JuniperContext};
 
 pub struct SongQuery;
+pub struct SongMutation;
+
 #[juniper::graphql_object]
 #[graphql(context = JuniperContext)]
 impl SongQuery {
-    async fn song(
-        input: SongInput,
+    async fn retrieve(
+        input: RetrieveSongInput,
         context: &JuniperContext,
     ) -> FieldResult<song::Model> {
         let song_service = &context.song_service;
@@ -28,5 +30,24 @@ impl SongQuery {
             .await?;
 
         Ok(song)
+    }
+}
+
+#[juniper::graphql_object]
+#[graphql(context = JuniperContext)]
+impl SongMutation {
+    async fn create(
+        input: CreateSongInput,
+        context: &JuniperContext,
+    ) -> FieldResult<song::Model> {
+        let song_service = &context.song_service;
+        let new_song = song_service.create(
+            input.status,
+            input.title,
+            input.created_at,
+            input.updated_at,
+        ).await?;
+        
+        Ok(new_song)
     }
 }
