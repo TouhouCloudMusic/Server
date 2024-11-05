@@ -1,6 +1,6 @@
 use juniper::{FieldResult};
 use entity::song;
-use crate::model::input_model::SongInput;
+use crate::model::input_model::{RandomSongInput, SongInput};
 use crate::service::juniper::{JuniperContext};
 
 pub struct SongQuery;
@@ -14,6 +14,17 @@ impl SongQuery {
         let song_service = &context.song_service;
         let song = song_service
             .find_by_id(input.id)
+            .await?;
+
+        Ok(song)
+    }
+
+    async fn random(
+        input: RandomSongInput,
+        context: &JuniperContext,
+    ) -> FieldResult<Vec<song::Model>> {
+        let song_service = &context.song_service;
+        let song = song_service.random(input.count as u64)
             .await?;
 
         Ok(song)

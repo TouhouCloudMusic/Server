@@ -15,3 +15,8 @@ pub struct LoginInput {
 pub struct SongInput {
     pub id: i32,
 }
+
+#[derive(GraphQLInputObject)]
+pub struct RandomSongInput {
+    pub count: i32,
+}

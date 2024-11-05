@@ -1,5 +1,6 @@
 use std::sync::Arc;
-use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
+use sea_orm::{DatabaseConnection, DbErr, EntityTrait, Order, QueryOrder, QuerySelect};
+use sea_orm::sea_query::{Func, SimpleExpr};
 use entity::{song};
 
 #[derive(Default, Clone)]
@@ -24,5 +25,19 @@ impl SongService {
             .ok_or(DbErr::RecordNotFound(
                 "Song not found by id".to_string(),
             ))
+    }
+
+    pub async fn random(
+        &self,
+        count: u64,
+    ) -> anyhow::Result<Vec<song::Model>, DbErr> {
+        song::Entity::find()
+            .order_by(
+                SimpleExpr::FunctionCall(Func::random()),
+                Order::Desc
+            )
+            .limit(count)
+            .all(self.database.as_ref())
+            .await
     }
 }
