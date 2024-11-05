@@ -112,11 +112,11 @@ impl UserService {
                     Error::msg(format!("Failed to parse password: {}", op))
                 })?;
 
-            let verifycation_result = ARGON2_HASHER
+            let verification_result = ARGON2_HASHER
                 .verify_password(password.as_bytes(), &parsed_hash)
                 .is_ok();
 
-            if verifycation_result {
+            if verification_result {
                 return Ok(user);
             } else {
                 return Err(Error::msg("Incorrect username or password"));
