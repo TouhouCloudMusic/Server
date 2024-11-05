@@ -10,9 +10,12 @@ use argon2::{
 };
 use entity::user;
 use once_cell::sync::Lazy;
-use sea_orm::QueryFilter;
+use sea_orm::{
+    prelude::Expr, sea_query::Query, ConnectionTrait, DatabaseBackend,
+    EntityTrait,
+};
+use sea_orm::{sea_query::Alias, QueryFilter};
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, DbErr};
-use sea_orm::EntityTrait;
 
 pub enum Password {
     #[allow(dead_code)]
@@ -71,11 +74,33 @@ impl UserService {
         }
     }
 
-    pub async fn is_exist(&self, username: &String) -> Result<bool, DbErr> {
-        let exist= self.find_by_name(username).await?
-            .is_some();
-        
-        Ok(exist)
+    pub async fn is_exist(
+        &self,
+        username: &String,
+    ) -> Result<bool, anyhow::Error> {
+        const ALIAS: &str = "is_exist";
+        let query = Query::select()
+            .expr_as(
+                Expr::exists(
+                    Query::select()
+                        .expr(Expr::value(1))
+                        .from(user::Entity)
+                        .and_where(user::Column::Name.eq(username))
+                        .to_owned(),
+                ),
+                Alias::new(ALIAS),
+            )
+            .to_owned();
+
+        let stmt = DatabaseBackend::Postgres.build(&query);
+
+        if let Some(result) = self.database.query_one(stmt).await? {
+            let is_exist: bool = result.try_get_by(ALIAS)?;
+
+            return Ok(is_exist);
+        }
+
+        Err(Error::msg("Failed to check if user exists"))
     }
 
     pub async fn create(
