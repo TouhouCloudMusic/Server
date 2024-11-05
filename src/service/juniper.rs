@@ -3,12 +3,14 @@ use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 
 use crate::AppState;
+use crate::resolver::juniper::{JuniperMutation, JuniperQuery};
 
 #[derive(Default)]
 pub struct JuniperContext {
     #[allow(dead_code)]
     pub database: Arc<DatabaseConnection>,
     pub user_service: crate::service::user::UserService,
+    pub song_service: crate::service::song::SongService,
 }
 
 impl juniper::Context for JuniperContext {}
@@ -18,13 +20,10 @@ impl From<AppState> for JuniperContext {
         Self {
             database: Arc::clone(&state.database),
             user_service: state.user_service,
+            song_service: state.song_service
         }
     }
 }
-
-pub struct JuniperQuery;
-
-pub struct JuniperMutation;
 
 pub struct _JuniperSubscription;
 

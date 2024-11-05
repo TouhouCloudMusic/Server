@@ -10,3 +10,8 @@ pub struct LoginInput {
     pub username: String,
     pub password: String,
 }
+
+#[derive(GraphQLInputObject)]
+pub struct SongInput {
+    pub id: i32,
+}

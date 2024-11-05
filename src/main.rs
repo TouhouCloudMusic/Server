@@ -14,11 +14,13 @@ use service::UserService;
 use std::env;
 use std::sync::Arc;
 use tracing_subscriber::fmt::time::ChronoLocal;
+use crate::service::SongService;
 
 #[derive(Clone, FromRef)]
 pub struct AppState {
     database: Arc<DatabaseConnection>,
     user_service: UserService,
+    song_service: SongService,
 }
 
 impl AppState {
@@ -28,6 +30,7 @@ impl AppState {
         Self {
             database: Arc::clone(&database),
             user_service: UserService::new(&database),
+            song_service: SongService::new(&database),
         }
     }
 }

@@ -4,9 +4,12 @@ use crate::service::juniper::*;
 
 use juniper::{graphql_object, graphql_value, FieldError, FieldResult};
 
+pub struct UserQuery;
+pub struct UserMutation;
+
 #[graphql_object]
 #[graphql(context = JuniperContext)]
-impl JuniperQuery {
+impl UserQuery {
     async fn login(
         input: LoginInput,
         context: &JuniperContext,
@@ -23,7 +26,7 @@ impl JuniperQuery {
 }
 #[graphql_object]
 #[graphql(context = JuniperContext)]
-impl JuniperMutation {
+impl UserMutation {
     async fn signup(
         input: SignupInput,
         context: &JuniperContext,
