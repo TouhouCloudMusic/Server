@@ -1,29 +1,27 @@
-use std::sync::Arc;
-use sea_orm::{ActiveValue, DatabaseConnection, DbErr, EntityTrait, Order, QueryOrder, QuerySelect};
+use entity::sea_orm_active_enums::EntityStatus;
+use entity::song;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::sea_query::{Func, SimpleExpr};
-use entity::{song};
-use entity::sea_orm_active_enums::EntityStatus;
+use sea_orm::{
+    ActiveValue, DatabaseConnection, DbErr, EntityTrait, Order, QueryOrder,
+    QuerySelect,
+};
 
 #[derive(Default, Clone)]
 pub struct SongService {
-    database: Arc<DatabaseConnection>,
+    database: DatabaseConnection,
 }
 
 impl SongService {
-    pub fn new(database: &Arc<DatabaseConnection>) -> Self {
-        Self {
-            database: Arc::clone(database),
-        }
+    pub fn new(database: DatabaseConnection) -> Self {
+        Self { database }
     }
 
     pub async fn find_by_id(
         &self,
         id: i32,
     ) -> anyhow::Result<Option<song::Model>, DbErr> {
-        song::Entity::find_by_id(id)
-            .one(self.database.as_ref())
-            .await
+        song::Entity::find_by_id(id).one(&self.database).await
     }
 
     pub async fn random(
@@ -31,12 +29,9 @@ impl SongService {
         count: u64,
     ) -> anyhow::Result<Vec<song::Model>, DbErr> {
         song::Entity::find()
-            .order_by(
-                SimpleExpr::FunctionCall(Func::random()),
-                Order::Desc
-            )
+            .order_by(SimpleExpr::FunctionCall(Func::random()), Order::Desc)
             .limit(count)
-            .all(self.database.as_ref())
+            .all(&self.database)
             .await
     }
 
@@ -55,7 +50,7 @@ impl SongService {
             ..Default::default()
         };
         song::Entity::insert(new_song)
-            .exec_with_returning(self.database.as_ref())
+            .exec_with_returning(&self.database)
             .await
     }
 }

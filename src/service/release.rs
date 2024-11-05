@@ -1,25 +1,20 @@
-use std::sync::Arc;
-use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
 use entity::release;
+use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
 
 #[derive(Default, Clone)]
 pub struct ReleaseService {
-    database: Arc<DatabaseConnection>,
+    database: DatabaseConnection,
 }
 
 impl ReleaseService {
-    pub fn new(database: &Arc<DatabaseConnection>) -> Self {
-        Self {
-            database: Arc::clone(database),
-        }
+    pub fn new(database: DatabaseConnection) -> Self {
+        Self { database }
     }
 
     pub async fn find_by_id(
         &self,
         id: i32,
     ) -> anyhow::Result<Option<release::Model>, DbErr> {
-        release::Entity::find_by_id(id)
-            .one(self.database.as_ref())
-            .await
+        release::Entity::find_by_id(id).one(&self.database).await
     }
 }

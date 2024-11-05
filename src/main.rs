@@ -11,14 +11,13 @@ use sea_orm::DatabaseConnection;
 use service::database::get_db_connection;
 use service::UserService;
 
-use std::env;
-use std::sync::Arc;
-use tracing_subscriber::fmt::time::ChronoLocal;
 use crate::service::{ReleaseService, SongService};
+use std::env;
+use tracing_subscriber::fmt::time::ChronoLocal;
 
 #[derive(Clone, FromRef)]
 pub struct AppState {
-    database: Arc<DatabaseConnection>,
+    database: DatabaseConnection,
     user_service: UserService,
     song_service: SongService,
     release_service: ReleaseService,
@@ -29,10 +28,10 @@ impl AppState {
         let database = get_db_connection().await;
 
         Self {
-            database: Arc::clone(&database),
-            user_service: UserService::new(&database),
-            song_service: SongService::new(&database),
-            release_service: ReleaseService::new(&database),
+            database: database.clone(),
+            user_service: UserService::new(database.clone()),
+            song_service: SongService::new(database.clone()),
+            release_service: ReleaseService::new(database.clone()),
         }
     }
 }

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use anyhow::{Error, Result};
 use argon2::{
     password_hash::{
@@ -64,14 +62,12 @@ impl From<&String> for Password {
 
 #[derive(Default, Clone)]
 pub struct UserService {
-    database: Arc<DatabaseConnection>,
+    database: DatabaseConnection,
 }
 
 impl UserService {
-    pub fn new(database: &Arc<DatabaseConnection>) -> Self {
-        Self {
-            database: Arc::clone(database),
-        }
+    pub fn new(database: DatabaseConnection) -> Self {
+        Self { database }
     }
 
     pub async fn is_exist(
@@ -115,7 +111,7 @@ impl UserService {
         };
 
         let user = user::Entity::insert(new_user)
-            .exec_with_returning(self.database.as_ref())
+            .exec_with_returning(&self.database)
             .await?;
 
         Ok(user)
@@ -128,7 +124,7 @@ impl UserService {
     ) -> Result<user::Model> {
         if let Some(user) = user::Entity::find()
             .filter(user::Column::Name.eq(username))
-            .one(self.database.as_ref())
+            .one(&self.database)
             .await?
         {
             let parsed_hash =
@@ -156,7 +152,7 @@ impl UserService {
     ) -> Result<Option<user::Model>, DbErr> {
         user::Entity::find()
             .filter(user::Column::Name.eq(username))
-            .one(self.database.as_ref())
+            .one(&self.database)
             .await
     }
 }
