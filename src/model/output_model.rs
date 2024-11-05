@@ -7,5 +7,5 @@ pub struct SignupOutput {
 
 #[derive(GraphQLObject)]
 pub struct LoginOutput {
-    pub id: i32,
+    pub message: String,
 }

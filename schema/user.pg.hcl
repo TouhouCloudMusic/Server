@@ -24,6 +24,7 @@ table "user" {
 
 	column "avatar_id" {
 		type = int
+		null = true
 	}
 	foreign_key "fk_user_avatar_id" {
 		columns = [ column.avatar_id ]

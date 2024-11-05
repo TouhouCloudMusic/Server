@@ -12,12 +12,7 @@ use entity::user;
 use once_cell::sync::Lazy;
 use sea_orm::QueryFilter;
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, DbErr};
-use sea_orm::{EntityTrait, QuerySelect};
-
-#[derive(Default, Clone)]
-pub struct UserService {
-    database: Arc<DatabaseConnection>,
-}
+use sea_orm::EntityTrait;
 
 pub enum Password {
     #[allow(dead_code)]
@@ -64,6 +59,11 @@ impl From<&String> for Password {
     }
 }
 
+#[derive(Default, Clone)]
+pub struct UserService {
+    database: Arc<DatabaseConnection>,
+}
+
 impl UserService {
     pub fn new(database: &Arc<DatabaseConnection>) -> Self {
         Self {
@@ -101,10 +101,8 @@ impl UserService {
         &self,
         username: &String,
         password: &String,
-    ) -> Result<bool> {
+    ) -> Result<user::Model> {
         if let Some(user) = user::Entity::find()
-            .select_only()
-            .column(user::Column::Password)
             .filter(user::Column::Name.eq(username))
             .one(self.database.as_ref())
             .await?
@@ -118,7 +116,11 @@ impl UserService {
                 .verify_password(password.as_bytes(), &parsed_hash)
                 .is_ok();
 
-            return Ok(verifycation_result);
+            if verifycation_result {
+                return Ok(user);
+            } else {
+                return Err(Error::msg("Incorrect username or password"));
+            }
         }
 
         Err(Error::msg("User not found"))

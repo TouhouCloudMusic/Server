@@ -12,26 +12,13 @@ impl JuniperQuery {
         context: &JuniperContext,
     ) -> FieldResult<LoginOutput> {
         let user_service = &context.user_service;
-        if user_service
+        let verification_result = user_service
             .verify_password(&input.username, &input.password)
-            .await?
-        {
-            return Err(FieldError::new(
-                "Username already exits",
-                graphql_value!({"status": "USER_EXISTS"}),
-            ));
-        }
+            .await?;
 
-        let user = user_service.find_by_name(&input.username).await.map_err(
-            |err| {
-                FieldError::new(
-                    format!("Failed to create user: {}", err),
-                    graphql_value!({"status": "DATABASE_ERROR"}),
-                )
-            },
-        )?;
-
-        Ok(LoginOutput { id: user.id })
+        Ok(LoginOutput {
+            message: format!("Hello {}!", verification_result.name),
+        })
     }
 }
 #[graphql_object]
@@ -45,7 +32,7 @@ impl JuniperMutation {
 
         if user_service.is_exist(&input.username).await? {
             return Err(FieldError::new(
-                "Username already exits",
+                "User already exits",
                 graphql_value!({"status": "USER_EXISTS"}),
             ));
         }

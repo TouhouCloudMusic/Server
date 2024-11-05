@@ -14,7 +14,7 @@ pub struct Model {
     pub name: String,
     #[sea_orm(column_type = "Text")]
     pub password: String,
-    pub avatar_id: i32,
+    pub avatar_id: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
