@@ -391,8 +391,10 @@ checksum = "a21f936df1771bf62b77f047b726c4625ff2e8aa607c01ec06e5a05bd8463401"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets 0.52.6",
 ]
 
@@ -2328,6 +2330,7 @@ dependencies = [
  "anyhow",
  "argon2",
  "axum",
+ "chrono",
  "dotenvy",
  "entity",
  "itertools 0.13.0",
@@ -2552,6 +2555,7 @@ version = "0.3.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad0f048c97dbd9faa9b7df56362b8ebcaa52adb06b498c050d2f4e32f90a7a8b"
 dependencies = [
+ "chrono",
  "nu-ansi-term",
  "sharded-slab",
  "smallvec",

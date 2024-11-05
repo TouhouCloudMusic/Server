@@ -9,10 +9,11 @@ use axum::{routing::get, Router};
 use sea_orm::DatabaseConnection;
 
 use service::database::get_db_connection;
-use service::user::UserService;
+use service::UserService;
 
 use std::env;
 use std::sync::Arc;
+use tracing_subscriber::fmt::time::ChronoLocal;
 
 #[derive(Clone, FromRef)]
 pub struct AppState {
@@ -35,7 +36,11 @@ impl AppState {
 async fn main() {
     dotenvy::dotenv().unwrap();
 
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_timer(ChronoLocal::new("%Y-%m-%d %H:%M:%S%.3f".to_string()))
+        .with_max_level(tracing::Level::DEBUG)
+        .with_test_writer()
+        .init();
 
     let server_port = env::var("SERVER_PORT").unwrap();
 

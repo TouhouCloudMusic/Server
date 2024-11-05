@@ -19,13 +19,14 @@ sea-orm = { version = "1.1", features = [
     "sqlx-postgres",
     "runtime-tokio-rustls",
     "macros",
+    "debug-print",
 ] }
 serde = { version = "1", features = [ "derive" ] }
 tokio = { version = "1", features = [
     "full",
 ] }
 tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+tracing-subscriber = { version = "0.3.18", features = [ "chrono" ] }
 
 [package]
 edition = "2021"
@@ -36,6 +37,7 @@ version = "0.1.0"
 anyhow.workspace             = true
 argon2.workspace             = true
 axum.workspace               = true
+chrono                       = "0.4.38"
 dotenvy.workspace            = true
 entity.workspace             = true
 itertools.workspace          = true
