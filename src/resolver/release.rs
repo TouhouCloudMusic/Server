@@ -12,7 +12,7 @@ impl ReleaseQuery {
     async fn retrieve(
         input: RetrieveReleaseInput,
         context: &JuniperContext,
-    ) -> FieldResult<release::Model> {
+    ) -> FieldResult<Option<release::Model>> {
         let release_service = &context.release_service;
         let release = release_service
             .find_by_id(input.id)

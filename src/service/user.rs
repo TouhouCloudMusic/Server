@@ -72,11 +72,10 @@ impl UserService {
     }
 
     pub async fn is_exist(&self, username: &String) -> Result<bool, DbErr> {
-        user::Entity::find()
-            .filter(user::Column::Name.eq(username))
-            .one(self.database.as_ref())
-            .await
-            .map(|opt| opt.is_some())
+        let exist= self.find_by_name(username).await?
+            .is_some();
+        
+        Ok(exist)
     }
 
     pub async fn create(
@@ -129,13 +128,10 @@ impl UserService {
     pub async fn find_by_name(
         &self,
         username: &String,
-    ) -> Result<user::Model, DbErr> {
+    ) -> Result<Option<user::Model>, DbErr> {
         user::Entity::find()
             .filter(user::Column::Name.eq(username))
             .one(self.database.as_ref())
-            .await?
-            .ok_or(DbErr::RecordNotFound(
-                "User not found after login".to_string(),
-            ))
+            .await
     }
 }

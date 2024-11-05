@@ -12,7 +12,7 @@ impl SongQuery {
     async fn retrieve(
         input: RetrieveSongInput,
         context: &JuniperContext,
-    ) -> FieldResult<song::Model> {
+    ) -> FieldResult<Option<song::Model>> {
         let song_service = &context.song_service;
         let song = song_service
             .find_by_id(input.id)

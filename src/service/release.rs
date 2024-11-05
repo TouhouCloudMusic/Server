@@ -17,12 +17,9 @@ impl ReleaseService {
     pub async fn find_by_id(
         &self,
         id: i32,
-    ) -> anyhow::Result<release::Model, DbErr> {
+    ) -> anyhow::Result<Option<release::Model>, DbErr> {
         release::Entity::find_by_id(id)
             .one(self.database.as_ref())
-            .await?
-            .ok_or(DbErr::RecordNotFound(
-                "Release not found by id".to_string(),
-            ))
+            .await
     }
 }
