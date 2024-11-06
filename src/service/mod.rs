@@ -1,4 +1,5 @@
 pub mod database;
+mod image;
 pub mod juniper;
 mod release;
 mod song;
