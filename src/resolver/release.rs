@@ -9,6 +9,7 @@ pub struct ReleaseQuery;
 #[juniper::graphql_object]
 #[graphql(context = JuniperContext)]
 impl ReleaseQuery {
+    #[graphql(description = "Get a release by its id.")]
     async fn retrieve(
         input: RetrieveReleaseInput,
         context: &JuniperContext,

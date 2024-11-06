@@ -11,6 +11,7 @@ pub struct SongMutation;
 #[juniper::graphql_object]
 #[graphql(context = JuniperContext)]
 impl SongQuery {
+    #[graphql(description = "Get a song by its id.")]
     async fn retrieve(
         input: RetrieveSongInput,
         context: &JuniperContext,
@@ -21,6 +22,7 @@ impl SongQuery {
         Ok(song)
     }
 
+    #[graphql(description = "Get random songs.")]
     async fn random(
         input: RandomSongInput,
         context: &JuniperContext,
@@ -35,6 +37,7 @@ impl SongQuery {
 #[juniper::graphql_object]
 #[graphql(context = JuniperContext)]
 impl SongMutation {
+    #[graphql(description = "Create a new song.")]
     async fn create(
         input: CreateSongInput,
         context: &JuniperContext,

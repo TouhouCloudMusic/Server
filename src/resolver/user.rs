@@ -10,6 +10,7 @@ pub struct UserMutation;
 #[graphql_object]
 #[graphql(context = JuniperContext)]
 impl UserQuery {
+    #[graphql(description = "Use username and password to login.")]
     async fn login(
         input: LoginInput,
         context: &JuniperContext,
@@ -27,6 +28,7 @@ impl UserQuery {
 #[graphql_object]
 #[graphql(context = JuniperContext)]
 impl UserMutation {
+    #[graphql(description = "Register a new user.")]
     async fn signup(
         input: SignupInput,
         context: &JuniperContext,
