@@ -1,2 +1,3 @@
-pub mod input_model;
-pub mod output_model;
+pub mod input;
+pub mod output;
+mod graphql;

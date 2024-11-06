@@ -1,5 +1,5 @@
-use crate::model::input_model::*;
-use crate::model::output_model::*;
+use crate::model::input::*;
+use crate::model::output::*;
 use crate::service::juniper::*;
 
 use juniper::{graphql_object, graphql_value, FieldError, FieldResult};

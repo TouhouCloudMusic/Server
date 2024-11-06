@@ -1,4 +1,4 @@
-use crate::model::input_model::{
+use crate::model::input::{
     CreateSongInput, RandomSongInput, RetrieveSongInput,
 };
 use crate::service::juniper::JuniperContext;

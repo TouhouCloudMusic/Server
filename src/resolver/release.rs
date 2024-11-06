@@ -1,4 +1,4 @@
-use crate::model::input_model::RetrieveReleaseInput;
+use crate::model::input::RetrieveReleaseInput;
 use crate::service::juniper::JuniperContext;
 use entity::release;
 use juniper::FieldResult;

@@ -1,6 +1,7 @@
-use entity::sea_orm_active_enums::EntityStatus;
+use entity::sea_orm_active_enums::{DatePrecision, EntityStatus, ReleaseType};
 use juniper::GraphQLInputObject;
-use sea_orm::prelude::DateTimeWithTimeZone;
+use sea_orm::prelude::{Date, DateTimeWithTimeZone};
+use entity::release;
 
 #[derive(GraphQLInputObject)]
 pub struct SignupInput {
@@ -37,12 +38,4 @@ pub struct CreateSongInput {
 #[derive(GraphQLInputObject)]
 pub struct RetrieveReleaseInput {
     pub id: i32,
-}
-
-#[derive(GraphQLInputObject)]
-pub struct CreateReleaseInput {
-    pub status: EntityStatus,
-    pub title: String,
-    pub created_at: DateTimeWithTimeZone,
-    pub updated_at: DateTimeWithTimeZone,
 }

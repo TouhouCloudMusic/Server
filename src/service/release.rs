@@ -17,4 +17,11 @@ impl ReleaseService {
     ) -> anyhow::Result<Option<release::Model>, DbErr> {
         release::Entity::find_by_id(id).one(&self.database).await
     }
+
+    pub async fn create(
+        &self,
+        id: i32,
+    ) -> anyhow::Result<Option<release::Model>, DbErr> {
+        release::Entity::find_by_id(id).one(&self.database).await
+    }
 }
