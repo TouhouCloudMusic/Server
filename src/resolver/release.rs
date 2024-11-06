@@ -1,7 +1,7 @@
-use juniper::FieldResult;
-use entity::release;
 use crate::model::input_model::RetrieveReleaseInput;
 use crate::service::juniper::JuniperContext;
+use entity::release;
+use juniper::FieldResult;
 
 pub struct ReleaseQuery;
 // pub struct ReleaseMutation;
@@ -14,9 +14,7 @@ impl ReleaseQuery {
         context: &JuniperContext,
     ) -> FieldResult<Option<release::Model>> {
         let release_service = &context.release_service;
-        let release = release_service
-            .find_by_id(input.id)
-            .await?;
+        let release = release_service.find_by_id(input.id).await?;
 
         Ok(release)
     }

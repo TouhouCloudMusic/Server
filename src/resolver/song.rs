@@ -1,7 +1,9 @@
-use juniper::{FieldResult};
+use crate::model::input_model::{
+    CreateSongInput, RandomSongInput, RetrieveSongInput,
+};
+use crate::service::juniper::JuniperContext;
 use entity::song;
-use crate::model::input_model::{CreateSongInput, RandomSongInput, RetrieveSongInput};
-use crate::service::juniper::{JuniperContext};
+use juniper::FieldResult;
 
 pub struct SongQuery;
 pub struct SongMutation;
@@ -14,9 +16,7 @@ impl SongQuery {
         context: &JuniperContext,
     ) -> FieldResult<Option<song::Model>> {
         let song_service = &context.song_service;
-        let song = song_service
-            .find_by_id(input.id)
-            .await?;
+        let song = song_service.find_by_id(input.id).await?;
 
         Ok(song)
     }
@@ -26,8 +26,7 @@ impl SongQuery {
         context: &JuniperContext,
     ) -> FieldResult<Vec<song::Model>> {
         let song_service = &context.song_service;
-        let song = song_service.random(input.count as u64)
-            .await?;
+        let song = song_service.random(input.count as u64).await?;
 
         Ok(song)
     }
@@ -41,13 +40,15 @@ impl SongMutation {
         context: &JuniperContext,
     ) -> FieldResult<song::Model> {
         let song_service = &context.song_service;
-        let new_song = song_service.create(
-            input.status,
-            input.title,
-            input.created_at,
-            input.updated_at,
-        ).await?;
-        
+        let new_song = song_service
+            .create(
+                input.status,
+                input.title,
+                input.created_at,
+                input.updated_at,
+            )
+            .await?;
+
         Ok(new_song)
     }
 }

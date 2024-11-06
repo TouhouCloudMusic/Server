@@ -2,15 +2,16 @@ use juniper::EmptySubscription;
 use sea_orm::DatabaseConnection;
 
 use crate::resolver::juniper::{JuniperMutation, JuniperQuery};
+use crate::service::{ReleaseService, SongService, UserService};
 use crate::AppState;
 
 #[derive(Default)]
 pub struct JuniperContext {
     #[allow(dead_code)]
     pub database: DatabaseConnection,
-    pub user_service: crate::service::user::UserService,
-    pub song_service: crate::service::song::SongService,
-    pub release_service: crate::service::release::ReleaseService,
+    pub user_service: UserService,
+    pub song_service: SongService,
+    pub release_service: ReleaseService,
 }
 
 impl juniper::Context for JuniperContext {}

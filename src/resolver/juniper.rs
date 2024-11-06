@@ -8,14 +8,24 @@ pub struct JuniperMutation;
 #[juniper::graphql_object]
 #[graphql(context = JuniperContext)]
 impl JuniperQuery {
-    fn user(&self) -> UserQuery { UserQuery }
-    fn song(&self) -> SongQuery { SongQuery }
-    fn release(&self) -> ReleaseQuery { ReleaseQuery }
+    fn user(&self) -> UserQuery {
+        UserQuery
+    }
+    fn song(&self) -> SongQuery {
+        SongQuery
+    }
+    fn release(&self) -> ReleaseQuery {
+        ReleaseQuery
+    }
 }
 
 #[juniper::graphql_object]
 #[graphql(context = JuniperContext)]
 impl JuniperMutation {
-    fn user(&self) -> UserMutation { UserMutation }
-    fn song(&self) -> SongMutation { SongMutation }
+    fn user(&self) -> UserMutation {
+        UserMutation
+    }
+    fn song(&self) -> SongMutation {
+        SongMutation
+    }
 }

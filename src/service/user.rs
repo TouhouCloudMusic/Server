@@ -33,7 +33,7 @@ impl Password {
                 let password_hash = ARGON2_HASHER
                     .hash_password(password.as_bytes(), &salt)
                     .map_err(|err| {
-                        Error::msg(format!("Failed to hash password: {}", err))
+                        Error::msg(format!("Failed to hash password: {err}"))
                     })?;
 
                 Ok(password_hash.to_string())
@@ -129,7 +129,7 @@ impl UserService {
         {
             let parsed_hash =
                 PasswordHash::new(&user.password).map_err(|op| {
-                    Error::msg(format!("Failed to parse password: {}", op))
+                    Error::msg(format!("Failed to parse password: {op}"))
                 })?;
 
             let verification_result = ARGON2_HASHER

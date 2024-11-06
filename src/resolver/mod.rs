@@ -1,4 +1,4 @@
-pub mod user;
-pub mod song;
 pub mod juniper;
-mod release;
+pub mod release;
+pub mod song;
+pub mod user;
