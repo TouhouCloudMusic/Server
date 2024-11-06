@@ -8,11 +8,12 @@ use axum::{routing::get, Router};
 
 use sea_orm::DatabaseConnection;
 
-use service::database::get_db_connection;
-use service::UserService;
+use service::{
+    database::get_db_connection, ReleaseService, SongService, UserService,
+};
 
-use crate::service::{ReleaseService, SongService};
 use std::env;
+
 use tracing_subscriber::fmt::time::ChronoLocal;
 
 #[derive(Clone, FromRef)]

@@ -8,12 +8,11 @@ members = [
 [workspace.dependencies]
 entity = { path = "./entity" }
 # external
-anyhow  = "1.0.92"
-argon2  = "0.5.3"
-axum    = { version = "0.7.7", features = [ "macros" ] }
-chrono  = "0.4.38"
+anyhow = "1.0.92"
+argon2 = "0.5.3"
+axum = { version = "0.7.7", features = [ "macros" ] }
+chrono = "0.4.38"
 dotenvy = "0.15"
-
 itertools = "0.13.0"
 juniper = { version = "0.16", features = [ "chrono" ] }
 juniper_axum = "0.1.1"
@@ -46,6 +45,7 @@ itertools.workspace          = true
 juniper.workspace            = true
 juniper_axum.workspace       = true
 once_cell                    = "1.20.2"
+regex                        = "1.11.1"
 sea-orm.workspace            = true
 serde.workspace              = true
 tokio.workspace              = true

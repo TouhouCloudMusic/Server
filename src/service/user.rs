@@ -8,6 +8,7 @@ use argon2::{
 };
 use entity::user;
 use once_cell::sync::Lazy;
+use regex::Regex;
 use sea_orm::{
     prelude::Expr, sea_query::Query, ConnectionTrait, DatabaseBackend,
     EntityTrait,
@@ -104,6 +105,10 @@ impl UserService {
         username: &String,
         password: Password,
     ) -> Result<user::Model> {
+        if !validate_username(username) {
+            return Err(Error::msg("Invalid username"));
+        }
+
         let new_user = user::ActiveModel {
             name: ActiveValue::Set(username.to_string()),
             password: ActiveValue::Set(password.to_string()?),
@@ -154,5 +159,66 @@ impl UserService {
             .filter(user::Column::Name.eq(username))
             .one(&self.database)
             .await
+    }
+}
+
+fn validate_username(username: &str) -> bool {
+    static USER_NAME_REGEX: Lazy<Regex> =
+        Lazy::new(|| Regex::new(r"^[\p{L}\p{N}_]{1,32}$").unwrap());
+
+    if !USER_NAME_REGEX.is_match(username) {
+        return false;
+    }
+
+    !username
+        .chars()
+        .any(|c| c.is_control() || c.is_whitespace())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_username() {
+        let test_cases = [
+            // 长度
+            ("", false),
+            (&"a".repeat(33), false),
+            // 空格
+            (" a ", false),
+            ("a a", false),
+            // 特殊字符
+            ("😀", false),       // emoji
+            (" ", false),        // 单个空格
+            ("\n", false),       // 换行符
+            ("\t", false),       // 制表符
+            ("\u{200B}", false), // 零宽空格
+            ("\u{00A0}", false), // 不间断空格
+            ("you_danhuang", true),
+            // 中文
+            ("无蛋黄", true),
+            ("憂鬱的臺灣烏龜", true),
+            // 日文
+            ("ひらがな", true),
+            ("かたかな", true),
+            ("カタカナ", true),
+            // 韩文
+            ("안녕하세요", true),
+            ("사용자", true),
+            // 西里尔字母
+            ("пример", true),
+            ("пользователь", true),
+            // 德语字符
+            ("müller", true),
+            ("straße", true),
+            // 阿拉伯字符
+            ("مرحبا", true),
+            ("مستخدم", true),
+        ];
+
+        for (username, expected) in test_cases {
+            assert_eq!(validate_username(username), expected);
+        }
     }
 }
