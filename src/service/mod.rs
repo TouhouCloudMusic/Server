@@ -1,9 +1,9 @@
 pub mod database;
-mod image;
+pub mod image;
 pub mod juniper;
-mod release;
-mod song;
-mod user;
+pub mod release;
+pub mod song;
+pub mod user;
 
 pub use release::ReleaseService;
 pub use song::SongService;

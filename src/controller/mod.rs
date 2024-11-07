@@ -1,20 +1,9 @@
-use axum::http::StatusCode;
-use axum::response::{IntoResponse};
+use crate::AppState;
+use axum::Router;
 
-pub mod graphql;
+mod graphql;
 mod user;
 
-// TODO: use this error crate
-enum ControllerError {
-    InvalidContentType,
-}
-
-impl IntoResponse for ControllerError {
-    fn into_response(self) -> axum::http::Response<axum::body::Body> {
-        match self {
-            ControllerError::InvalidContentType => {
-                (StatusCode::BAD_REQUEST, "Invalid content Type").into_response()
-            }
-        }
-    }
+pub fn api_router() -> Router<AppState> {
+    Router::new().merge(graphql::router()).merge(user::router())
 }

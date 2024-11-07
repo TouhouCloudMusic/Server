@@ -1,7 +1,6 @@
-use entity::sea_orm_active_enums::{DatePrecision, EntityStatus, ReleaseType};
+use entity::sea_orm_active_enums::EntityStatus;
 use juniper::GraphQLInputObject;
-use sea_orm::prelude::{Date, DateTimeWithTimeZone};
-use entity::release;
+use sea_orm::prelude::DateTimeWithTimeZone;
 
 #[derive(GraphQLInputObject)]
 pub struct SignupInput {

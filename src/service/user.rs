@@ -1,12 +1,15 @@
-use anyhow::{Error, Result};
 use argon2::{
+    password_hash,
     password_hash::{
         rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier,
         SaltString,
     },
     Argon2,
 };
+use async_trait::async_trait;
+use axum_login::{AuthnBackend, UserId};
 use entity::user;
+use error_set::error_set;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use sea_orm::{
@@ -15,6 +18,8 @@ use sea_orm::{
 };
 use sea_orm::{sea_query::Alias, QueryFilter};
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, DbErr};
+use serde::{Deserialize, Serialize};
+use tokio::task::JoinError;
 
 pub enum Password {
     #[allow(dead_code)]
@@ -24,8 +29,33 @@ pub enum Password {
 
 pub static ARGON2_HASHER: Lazy<Argon2> = Lazy::new(Argon2::default);
 
+pub type AuthSession = axum_login::AuthSession<UserService>;
+
+error_set! {
+
+    Error = {
+        #[display("User not found")]
+        NotFound,
+        #[display("Database error")]
+        Database,
+        #[display("Failed to create user")]
+        Create,
+        #[display("Invalid username or password")]
+        AuthenticationFailed,
+        #[display("Failed to hash password: {err}")]
+        HashPassword {
+            err: password_hash::errors::Error
+        },
+        #[display("Failed to parse password")]
+        ParsePassword {
+            err: password_hash::errors::Error
+        },
+        JoinError(JoinError)
+    };
+}
+
 impl Password {
-    fn to_string(&self) -> Result<String> {
+    fn to_string(&self) -> Result<String, Error> {
         match self {
             Password::Hashed(password) => Ok(password.to_string()),
             Password::Unhashed(password) => {
@@ -33,9 +63,7 @@ impl Password {
 
                 let password_hash = ARGON2_HASHER
                     .hash_password(password.as_bytes(), &salt)
-                    .map_err(|err| {
-                        Error::msg(format!("Failed to hash password: {err}"))
-                    })?;
+                    .map_err(|err| Error::HashPassword { err })?;
 
                 Ok(password_hash.to_string())
             }
@@ -71,10 +99,7 @@ impl UserService {
         Self { database }
     }
 
-    pub async fn is_exist(
-        &self,
-        username: &String,
-    ) -> Result<bool, anyhow::Error> {
+    pub async fn is_exist(&self, username: &String) -> Result<bool, Error> {
         const ALIAS: &str = "is_exist";
         let query = Query::select()
             .expr_as(
@@ -91,22 +116,22 @@ impl UserService {
 
         let stmt = DatabaseBackend::Postgres.build(&query);
 
-        if let Some(result) = self.database.query_one(stmt).await? {
-            let is_exist: bool = result.try_get_by(ALIAS)?;
-
-            return Ok(is_exist);
+        if let Ok(Some(result)) = self.database.query_one(stmt).await {
+            if let Ok(is_exist) = result.try_get_by::<bool, &str>(ALIAS) {
+                return Ok(is_exist);
+            }
         }
 
-        Err(Error::msg("Failed to check if user exists"))
+        Err(Error::Database)
     }
 
     pub async fn create(
         &self,
         username: &String,
         password: Password,
-    ) -> Result<user::Model> {
+    ) -> Result<user::Model, Error> {
         if !validate_username(username) {
-            return Err(Error::msg("Invalid username"));
+            return Err(Error::AuthenticationFailed);
         }
 
         let new_user = user::ActiveModel {
@@ -115,40 +140,48 @@ impl UserService {
             ..Default::default()
         };
 
-        let user = user::Entity::insert(new_user)
+        user::Entity::insert(new_user)
             .exec_with_returning(&self.database)
-            .await?;
-
-        Ok(user)
+            .await
+            .map_err(|_| Error::Create)
     }
 
     pub async fn verify_password(
         &self,
         username: &String,
         password: &String,
-    ) -> Result<user::Model> {
-        if let Some(user) = user::Entity::find()
-            .filter(user::Column::Name.eq(username))
-            .one(&self.database)
+    ) -> Result<user::Model, Error> {
+        if let Ok(Some(user)) = self.find_by_name(username).await {
+            let password_bytes = password.as_bytes().to_owned();
+
+            tokio::task::spawn_blocking(move || {
+                let parsed_hash = PasswordHash::new(&user.password)
+                    .map_err(|err| Error::ParsePassword { err })?;
+
+                if ARGON2_HASHER
+                    .verify_password(&password_bytes, &parsed_hash)
+                    .is_ok()
+                {
+                    Ok(user)
+                } else {
+                    Err(Error::AuthenticationFailed)
+                }
+            })
             .await?
-        {
-            let parsed_hash =
-                PasswordHash::new(&user.password).map_err(|op| {
-                    Error::msg(format!("Failed to parse password: {op}"))
-                })?;
-
-            let verification_result = ARGON2_HASHER
-                .verify_password(password.as_bytes(), &parsed_hash)
-                .is_ok();
-
-            if verification_result {
-                return Ok(user);
-            } else {
-                return Err(Error::msg("Incorrect username or password"));
-            }
+        } else {
+            Err(Error::NotFound)
         }
+    }
 
-        Err(Error::msg("User not found"))
+    pub async fn find_by_id(
+        &self,
+        id: &i32,
+    ) -> Result<Option<user::Model>, Error> {
+        user::Entity::find()
+            .filter(user::Column::Id.eq(*id))
+            .one(&self.database)
+            .await
+            .map_err(|_| Error::Database)
     }
 
     pub async fn find_by_name(
@@ -159,6 +192,33 @@ impl UserService {
             .filter(user::Column::Name.eq(username))
             .one(&self.database)
             .await
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Credential {
+    pub username: String,
+    pub password: String,
+}
+
+#[async_trait]
+impl AuthnBackend for UserService {
+    type User = user::Model;
+    type Credentials = Credential;
+    type Error = Error;
+
+    async fn authenticate(
+        &self,
+        Credential { username, password }: Self::Credentials,
+    ) -> std::result::Result<Option<Self::User>, Self::Error> {
+        Ok(Some(self.verify_password(&username, &password).await?))
+    }
+
+    async fn get_user(
+        &self,
+        id: &UserId<Self>,
+    ) -> std::result::Result<Option<Self::User>, Self::Error> {
+        self.find_by_id(id).await
     }
 }
 

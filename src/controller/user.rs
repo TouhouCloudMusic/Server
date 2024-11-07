@@ -1,22 +1,30 @@
-use crate::AppState;
-use axum::extract::Multipart;
+use crate::service::user::{AuthSession, Credential};
+use crate::service::UserService;
+use crate::{service, AppState};
+use axum::extract::{Multipart, State};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
+use axum::response::{IntoResponse, Redirect};
 use axum::routing::post;
-use axum::{debug_handler, Json, Router};
-use base64::{engine::general_purpose::URL_SAFE, Engine as _};
+use axum::{debug_handler, Form, Json, Router};
+use axum_login::login_required;
 use serde_json::json;
-use xxhash_rust::xxh3::xxh3_64;
 
 pub fn router() -> Router<AppState> {
-    Router::new().route("avatar", post(upload_avatar))
+    Router::new()
+        .route("/avatar", post(upload_avatar))
+        .route_layer(login_required!(UserService, login_url = "/signin"))
+        .route("/signin", post(login))
 }
 
 #[debug_handler]
 async fn upload_avatar(
+    auth_session: AuthSession,
+    State(image_service): State<service::image::Service>,
     mut multipart: Multipart,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
-    while let Some(field) = multipart
+    let user_id = auth_session.user.ok_or(StatusCode::UNAUTHORIZED)?.id;
+
+    if let Some(field) = multipart
         .next_field()
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?
@@ -34,18 +42,34 @@ async fn upload_avatar(
 
         let data = field.bytes().await.map_err(|_| StatusCode::BAD_REQUEST)?;
 
-        let data_hash = xxh3_64(&data);
+        image_service
+            .create(data, user_id)
+            .await
+            .map(|_| {
+                Json(json!({
+                    "message": "Ok"
+                }))
+            })
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+    } else {
+        Err(StatusCode::BAD_REQUEST)
+    }
+}
 
-        let filename = URL_SAFE.encode(data_hash.to_be_bytes());
+#[debug_handler]
+async fn login(
+    mut auth_session: AuthSession,
+    Form(creds): Form<Credential>,
+) -> impl IntoResponse {
+    let user = match auth_session.authenticate(creds.clone()).await {
+        Ok(Some(user)) => user,
+        Ok(None) => return StatusCode::UNAUTHORIZED.into_response(),
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
 
-        // TODO
-
-        return Ok(Json(json!({
-            "message": "Ok"
-        })));
+    if auth_session.login(&user).await.is_err() {
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
     }
 
-    Ok(Json(json!({
-        "message": "Err"
-    })))
+    Redirect::to("/").into_response()
 }

@@ -11,8 +11,9 @@ If you bring skills in any of the areas of front-end development, UI design, and
 # Quick Start
 技术栈
 
-- 数据库迁移工具[atlas](https://atlasgo.io/)
-
+- 数据库迁移工具[Atlas](https://atlasgo.io/)
+- 安装[Taplo](https://taplo.tamasfe.dev/)检测并格式化Toml
 
 配置Pre-Push Hooks
+
 1. run cargo test 
