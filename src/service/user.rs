@@ -195,7 +195,7 @@ mod tests {
             ("\t", false),       // 制表符
             ("\u{200B}", false), // 零宽空格
             ("\u{00A0}", false), // 不间断空格
-            ("you_danhuang", true),
+            ("alice_megatron", true),
             // 中文
             ("无蛋黄", true),
             ("憂鬱的臺灣烏龜", true),
